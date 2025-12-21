@@ -19,6 +19,7 @@ function App() {
 
   const SYMBOLS = ['BTC/USD', 'ETH/USD', 'SOL/USD', 'XRP/USD', 'ADA/USD'];
 
+
   // // Keyboard Navigation
   // useEffect(() => {
   //   const handleKeys = (e: KeyboardEvent) => {
@@ -48,7 +49,7 @@ function App() {
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>
             <div>
-              <h1 className="text-xl font-black tracking-tighter text-white uppercase italic">Chronos</h1>
+              <h1 className="text-xl font-black tracking-tighter text-white uppercase italic">KronosL2</h1>
               <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Signal-Core V1.8</p>
             </div>
           </div>
@@ -70,7 +71,7 @@ function App() {
           <div className="flex flex-col">
             <span className="text-[10px] text-zinc-500 uppercase font-bold text-center">Live Market</span>
             <span className={`text-lg font-black mono text-indigo-400`}>
-              ${readService.state.activeSnapshot?.asks[0]?.price.toLocaleString() || '0.00'}
+              ${readService.state.liveSnapshot.value?.asks[0]?.price.toLocaleString() || '0.00'}
             </span>
           </div>
         </div>
@@ -79,11 +80,11 @@ function App() {
       <main className="flex-1 flex flex-col xl:flex-row gap-4 overflow-hidden">
         <div className="flex-1 flex flex-col gap-4 overflow-hidden">
           <div className="flex-[2] min-h-[300px]">
-            <DepthChart snapshot={readService.state.activeSnapshot} />
+            <DepthChart snapshot={readService.state.liveSnapshot.value} />
           </div>
           <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-4">
-              <ImbalanceMeter snapshot={readService.state.activeSnapshot} />
+              <ImbalanceMeter snapshot={readService.state.liveSnapshot.value} />
               <div className="bg-zinc-900/30 p-4 rounded-xl border border-zinc-800 flex-1 flex flex-col justify-center">
                 <h4 className="text-[10px] text-zinc-500 font-bold uppercase mb-2">Network Health</h4>
                 <p className="text-xs text-zinc-400 mono">STATUS: <span className="text-green-500">CONNECTED</span></p>
@@ -94,7 +95,7 @@ function App() {
         </div>
 
         <aside className="w-full xl:w-[600px] flex flex-col">
-          <OrderBookTable snapshot={readService.state.activeSnapshot} limit={25} />
+          <OrderBookTable snapshot={readService.state.liveSnapshot.value} limit={25} />
         </aside>
       </main>
 
@@ -103,11 +104,11 @@ function App() {
           <button
             onClick={() => {
               readService.actions.pause();
-              if (readService.state.isPaused) readService.actions.goToHistory(readService.state.history.length - 1);
+              if (readService.state.isPaused.value) readService.actions.goToHistory(readService.state.history.value.length - 1);
             }}
-            className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all ${readService.state.isPaused ? 'bg-indigo-600' : 'bg-zinc-800 text-red-400'}`}
+            className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all ${readService.state.isPaused.value ? 'bg-indigo-600' : 'bg-zinc-800 text-red-400'}`}
           >
-            {readService.state.isPaused ? <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg> : <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>}
+            {readService.state.isPaused.value ? <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg> : <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>}
           </button>
 
           {/* <div className="flex-1 flex flex-col gap-2">

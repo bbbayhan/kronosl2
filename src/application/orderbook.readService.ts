@@ -23,12 +23,25 @@ export const useOrderBookReadService = (symbol: string) => {
     });
 
     // ----- INFRASTRUCTURE -----
-    const wsService = new KrakenWsService(symbol);
+    const wsService = new KrakenWsService(symbol, (snap: OrderBookSnapshot) => {
+        if (!isPaused.value) {
+            liveSnapshot.value = snap;
+            console.log({ snap }); // Reduced log noise
+            history.value.push({
+                snapshot: snap,
+                timestamp: Date.now(),
+            });
+            if (history.value.length > MAX_HISTORY) {
+                history.value.shift();
+            }
+        }
+    });
 
     // ----- ACTIONS -----
     const actions = {
-        connect() {
-            wsService.connect();
+        async connect() {
+            await wsService.connect();
+            isConnected.value = true;
         },
 
         disconnect() {
@@ -62,11 +75,11 @@ export const useOrderBookReadService = (symbol: string) => {
 
     return {
         state: {
-            liveSnapshot: liveSnapshot.value,
-            activeSnapshot: activeSnapshot.value,
-            history: history.value,
-            isPaused: isPaused.value,
-            isConnected: isConnected.value,
+            liveSnapshot,
+            activeSnapshot,
+            history,
+            isPaused,
+            isConnected,
         },
         actions,
     };

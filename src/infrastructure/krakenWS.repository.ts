@@ -1,6 +1,7 @@
 
 import { OrderLevel } from '../entities/orderLevel';
 import { KrakenWsMessage } from '../entities/krakenWsMessage';
+import { OrderBookSnapshot } from '../entities/orderbookSnapshot';
 
 export class KrakenWsService {
     private ws: WebSocket | null = null;
@@ -8,9 +9,11 @@ export class KrakenWsService {
     private currentBook: { bids: OrderLevel[], asks: OrderLevel[] } = { bids: [], asks: [] };
     private lastUiUpdate = 0;
     private UI_THROTTLE = 100; // ms
+    private onSnapshot: (snap: OrderBookSnapshot) => void;
 
-    constructor(symbol: string) {
+    constructor(symbol: string, onSnapshot: (snap: OrderBookSnapshot) => void) {
         this.symbol = symbol;
+        this.onSnapshot = onSnapshot;
     }
 
     connect() {
@@ -39,7 +42,6 @@ export class KrakenWsService {
     }
 
     private processMessage(msg: KrakenWsMessage) {
-        console.log({ msg })
         const data = msg.data[0];
         if (!data) return;
 
@@ -68,7 +70,7 @@ export class KrakenWsService {
                 symbol: this.symbol
             };
             this.lastUiUpdate = now;
-            return snap;
+            this.onSnapshot(snap);
         }
     }
 
