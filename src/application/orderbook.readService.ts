@@ -1,20 +1,16 @@
 import { signal, computed } from '@preact/signals-react';
-
 import { KrakenWsService } from '../infrastructure/krakenWS.repository';
 import type { OrderBookSnapshot } from '../entities/orderbookSnapshot';
 import type { HistoryFrame } from '../entities/historyFrame';
 
 const MAX_HISTORY = 1000;
+const liveSnapshot = signal<OrderBookSnapshot | null>(null);
+const history = signal<HistoryFrame[]>([]);
+const isPaused = signal(false);
+const historyIndex = signal(-1);
+const isConnected = signal(false);
 
 export const useOrderBookReadService = (symbol: string) => {
-    // ----- STATE -----
-    const liveSnapshot = signal<OrderBookSnapshot | null>(null);
-    const history = signal<HistoryFrame[]>([]);
-    const isPaused = signal(false);
-    const historyIndex = signal(-1);
-    const isConnected = signal(false);
-
-    // ----- COMPUTED -----
     const activeSnapshot = computed(() => {
         if (isPaused.value && historyIndex.value >= 0) {
             return history.value[historyIndex.value]?.snapshot ?? null;
@@ -22,11 +18,9 @@ export const useOrderBookReadService = (symbol: string) => {
         return liveSnapshot.value;
     });
 
-    // ----- INFRASTRUCTURE -----
     const wsService = new KrakenWsService(symbol, (snap: OrderBookSnapshot) => {
         if (!isPaused.value) {
             liveSnapshot.value = snap;
-            console.log({ snap }); // Reduced log noise
             history.value.push({
                 snapshot: snap,
                 timestamp: Date.now(),
@@ -37,7 +31,6 @@ export const useOrderBookReadService = (symbol: string) => {
         }
     });
 
-    // ----- ACTIONS -----
     const actions = {
         async connect() {
             await wsService.connect();
@@ -78,6 +71,7 @@ export const useOrderBookReadService = (symbol: string) => {
             liveSnapshot,
             activeSnapshot,
             history,
+            historyIndex,
             isPaused,
             isConnected,
         },

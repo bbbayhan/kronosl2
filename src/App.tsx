@@ -9,6 +9,7 @@ import OrderBookTable from './presentation/components/OrderbookTable';
 function App() {
   const [symbol, setSymbol] = useState('BTC/USD');
   const [showInfo, setShowInfo] = useState(false);
+
   const readService = useOrderBookReadService(symbol);
 
   // Reconnect WS when symbol changes
@@ -20,23 +21,23 @@ function App() {
   const SYMBOLS = ['BTC/USD', 'ETH/USD', 'SOL/USD', 'XRP/USD', 'ADA/USD'];
 
 
-  // // Keyboard Navigation
-  // useEffect(() => {
-  //   const handleKeys = (e: KeyboardEvent) => {
-  //     if (e.code === 'Space') {
-  //       e.preventDefault();
-  //       isPaused.value = !isPaused.value;
-  //       if (isPaused.value) historyIndex.value = history.value.length - 1;
-  //       else historyIndex.value = -1;
-  //     }
-  //     if (isPaused.value) {
-  //       if (e.code === 'ArrowLeft') historyIndex.value = Math.max(0, historyIndex.value - 1);
-  //       if (e.code === 'ArrowRight') historyIndex.value = Math.min(history.value.length - 1, historyIndex.value + 1);
-  //     }
-  //   };
-  //   window.addEventListener('keydown', handleKeys);
-  //   return () => window.removeEventListener('keydown', handleKeys);
-  // }, []);
+
+  useEffect(() => {
+    const handleKeys = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        readService.state.isPaused.value = !readService.state.isPaused.value;
+        if (readService.state.isPaused.value) readService.state.historyIndex.value = readService.state.history.value.length - 1;
+        else readService.state.historyIndex.value = -1;
+      }
+      if (readService.state.isPaused.value) {
+        if (e.code === 'ArrowLeft') readService.state.historyIndex.value = Math.max(0, readService.state.historyIndex.value - 1);
+        if (e.code === 'ArrowRight') readService.state.historyIndex.value = Math.min(readService.state.history.value.length - 1, readService.state.historyIndex.value + 1);
+      }
+    };
+    window.addEventListener('keydown', handleKeys);
+    return () => window.removeEventListener('keydown', handleKeys);
+  }, []);
 
   return (
     <div className="flex flex-col h-screen p-4 bg-[#0a0a0c] gap-4">
@@ -59,7 +60,7 @@ function App() {
               <button
                 key={s}
                 onClick={() => readService.actions.reset()}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${symbol === s ? 'bg-zinc-700 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${symbol === s ? 'font-bold bg-zinc-700 text-black shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
               >
                 {s.split('/')[0]}
               </button>
@@ -111,27 +112,26 @@ function App() {
             {readService.state.isPaused.value ? <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg> : <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>}
           </button>
 
-          {/* <div className="flex-1 flex flex-col gap-2">
+          <div className="flex-1 flex flex-col gap-2">
             <div className="flex justify-between items-center text-[10px] text-zinc-500 font-bold uppercase">
-              <span>{hist.length > 0 ? new Date(hist[0].timestamp).toLocaleTimeString() : '...'}</span>
-              <span className={readService.state.isPaused ? 'text-indigo-400' : 'text-zinc-500'}>
-                {readService.state.isPaused ? 'REPLAYING HISTORICAL BUFFER' : 'STREAMING LIVE DATA'}
+              <span>{readService.state.history.value.length > 0 ? new Date(readService.state.history.value[0].timestamp).toLocaleTimeString() : '...'}</span>
+              <span className={readService.state.isPaused.value ? 'text-indigo-400' : 'text-zinc-500'}>
+                {readService.state.isPaused.value ? 'REPLAYING HISTORICAL BUFFER' : 'STREAMING LIVE DATA'}
               </span>
               <span>LIVE</span>
             </div>
             <input
               type="range"
               min="0"
-              max={Math.max(0, readService.state.history.length - 1)}
-              // FIX: Use Math.max to avoid negative range values and cast histIdx to handle 'unknown' comparison
-              value={histIdx >= 0 ? histIdx : Math.max(0, readService.state.history.length - 1)}
+              max={Math.max(0, readService.state.history.value.length - 1)}
+              value={readService.state.historyIndex.value >= 0 ? readService.state.historyIndex.value : Math.max(0, readService.state.history.value.length - 1)}
               onChange={(e) => {
                 readService.actions.pause();
                 readService.actions.goToHistory(parseInt(e.target.value));
               }}
               className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
             />
-          </div> */}
+          </div>
         </div>
       </footer>
     </div>
