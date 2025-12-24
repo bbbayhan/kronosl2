@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import './App.css';
 
-import { useOrderBookReadService } from './application/orderbook.readService';
+import { useOrderBook } from './presentation/hooks/useOrderBook';
 import InfoModal from './presentation/components/InfoModal';
 import DepthChart from './presentation/components/DepthChart';
 import ImbalanceMeter from './presentation/components/ImbalanceMeter';
@@ -11,7 +11,7 @@ function App() {
   const [symbol, setSymbol] = useState('BTC/USD');
   const [showInfo, setShowInfo] = useState(false);
 
-  const readService = useOrderBookReadService(symbol);
+  const readService = useOrderBook(symbol);
 
   // Derived snapshot for UI (LIVE or HISTORY)
   const snapshot = readService.state.activeSnapshot.value;
@@ -64,7 +64,7 @@ function App() {
 
     window.addEventListener('keydown', handleKeys);
     return () => window.removeEventListener('keydown', handleKeys);
-  }, []);
+  }, [readService]);
 
   return (
     <div className="flex flex-col h-screen p-4 bg-[#0a0a0c] gap-4">
@@ -139,10 +139,14 @@ function App() {
         <div className="flex items-center gap-6">
           <button
             onClick={() => {
-              readService.actions.pause();
-              readService.actions.goToHistory(
-                readService.state.history.value.length - 1
-              );
+              if (readService.state.isPaused.value) {
+                readService.actions.resume();
+              } else {
+                readService.actions.pause();
+                readService.actions.goToHistory(
+                  readService.state.history.value.length - 1
+                );
+              }
             }}
             className="w-12 h-12 flex items-center justify-center rounded-xl"
           >
