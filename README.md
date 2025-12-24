@@ -1,73 +1,79 @@
-# React + TypeScript + Vite
+# KronosL2
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+KronosL2 is a production-grade real-time orderbook visualizer designed to demonstrate how **Hexagonal Architecture** and **Signal-based state management** scale in high-frequency browser environments.
 
-Currently, two official plugins are available:
+By decoupling business logic from UI rendering, KronosL2 achieves **60fps performance** while handling 20+ WebSocket messages per second. It features a novel **"Time Travel" engine**, allowing users to pause live liquid markets and scrub backward to analyze volatility tick-by-tick.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+**Key Highlights:**
+*   **Technical Execution**: Built with **Preact Signals** for granular reactivity to handle high-throughput streams without main-thread blocking.
+*   **Innovation**: Brings DVR-style playback controls (Pause, Rewind, Replay) to live financial data streams.
+*   **Architecture & Reusability**: Implements strict **Hexagonal Architecture**, completely isolating the **Domain** from the **Infrastructure**. This allows the data source (currently Kraken WS) to be swapped for any exchange connector without touching a single line of business logic or UI code.
+*   **UX & Accessibility**: Features a contrast-optimized dark mode, clear data visualization with D3.js, and full keyboard navigation for the playback engine.
 
-## React Compiler
+## 🚀 How to Run
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Prerequisites
+- Node.js (v24+ recommended)
+- npm
 
-## Expanding the ESLint configuration
+### Installation
+1.  Clone the repository.
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Development Server
+Start the local development server:
+```bash
+npm run dev
 ```
+Open your browser and navigate to `http://localhost:5173` (or the port shown in your terminal).
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🛠️ Tech Stack
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- **Vite**: Next-generation frontend tooling that provides a lightning-fast development server and optimized production builds.
+- **TailwindCSS**: A utility-first CSS framework for rapid UI development, used here for building a modern, responsive, and dark-themed interface.
+- **Preact Signals**: A high-performance state management library. We use `@preact/signals-react` to handle high-frequency WebSocket updates (20+ messages/sec) without triggering unnecessary React component re-renders, ensuring the UI stays buttery smooth (60fps).
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 🏗️ Hexagonal Architecture
+
+This project follows **Hexagonal Architecture (Ports and Adapters)** principles to decouple core business logic from external concerns like the UI and data sources. This ensures the application is maintainable, testable, and flexible.
+
+The codebase is organized into four distinct layers:
+
+### 1. Domain Layer (`src/entities`)
+**The Core.** This layer contains the enterprise business rules and entities. It has **no dependencies** on other layers.
+
+-   **Key Files**:
+    -   `orderbookSnapshot.ts`: Defines the structure of a normalized orderbook state.
+    -   `orderLevel.ts`: Defines price/quantity levels.
+    -   `historyFrame.ts`: Defines the structure for historical data points.
+    -   `krakenWsMessage.ts`: Defines the structure of Kraken WebSocket messages.
+    -   `krakenBookEntry.ts`: Defines the structure of Kraken WebSocket book entries.
+
+### 2. Application Layer (`src/application`)
+**The Orchestrator.** This layer controls the flow of data between the UI (Presentation) and external services (Infrastructure). It contains the *use cases* of the application.
+
+-   **Implementation**:
+    -   `orderbook.readService.ts`: A custom React hook (`useOrderBookReadService`) acts as the application service. It manages the `signals` (state), handles the cyclic buffer for time travel, and exposes specific `actions` (Connect, Pause, GoToHistory) to the UI.
+
+### 3. Infrastructure Layer (`src/infrastructure`)
+**The Adapter.** This layer implements the interfaces defined by the application/domain to talk to the "outside world."
+
+-   **Implementation**:
+    -   `krakenWS.repository.ts`: Connects to Kraken's public WebSocket API. It handles subscription management, connection health, and most importantly, **adapts** the raw, complex Kraken message format into our clean `OrderBookSnapshot` domain entity before passing it "inward" to the Application layer.
+
+### 4. Presentation Layer (`src/presentation` & `src/App.tsx`)
+**The Interface.** This layer is responsible for rendering the state to the user and capturing user input.
+
+-   **Implementation**:
+    -   **Components**: `DepthChart`, `ImbalanceMeter`, `OrderBookTable`.
+    -   **View**: `App.tsx` acts as the main composition root, wiring the Application service to the UI components.
+
+---
+
+### Data Flow Summary
+1.  **Infrastructure** receives raw WebSocket event → Adapts it to `OrderBookSnapshot` (Domain).
+2.  **Application** receives `OrderBookSnapshot` → Updates State (`signals`) & History Buffer.
+3.  **Presentation** observes State → Renders UI (Charts, Tables).

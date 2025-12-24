@@ -15,7 +15,7 @@ const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
                 <div className="space-y-6 text-zinc-400 text-sm leading-relaxed">
                     <section>
                         <h3 className="text-indigo-400 font-bold uppercase text-xs mb-1">Time Travel Engine</h3>
-                        <p>Chronos buffers up to 1,000 orderbook states. Use the scrubber to rewind and analyze liquidity dynamics before price movements.</p>
+                        <p>KronosL2 buffers up to 1,000 orderbook states. Use the scrubber to rewind and analyze liquidity dynamics before price movements.</p>
                     </section>
                     <section>
                         <h3 className="text-indigo-400 font-bold uppercase text-xs mb-1">Depth Visualization</h3>
@@ -31,7 +31,7 @@ const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose }) => {
                 </div>
                 <button
                     onClick={onClose}
-                    className="mt-8 w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-all"
+                    className="mt-8 w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-black font-bold rounded-xl transition-all"
                 >
                     CONTINUE TO TERMINAL
                 </button>

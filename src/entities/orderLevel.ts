@@ -8,8 +8,4 @@ export class OrderLevel {
         this.quantity = quantity;
         this.total = total;
     }
-
-    static create(json: { price: number; quantity: number; total?: number }) {
-        return new OrderLevel(json.price, json.quantity, json.total);
-    }
 }
